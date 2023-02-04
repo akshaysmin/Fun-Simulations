@@ -77,7 +77,6 @@ def do_timestep(i):
 
         velocity[p2] += -v2a
         velocity[p1] +=  v2a
-
         
 
     return  None
