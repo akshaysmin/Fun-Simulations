@@ -9,16 +9,17 @@ from matplotlib import patches
 Boundaries at x => 0 - 100
               y => 0 - 100
 '''
-radius = 5 # meters
+radius = 2 # meters
 delta_t = 10e-3 #seconds
+NUM_PARTICLES = 100
 
-position = 100*np.random.rand(10,2) # m
-velocity = 200*np.random.rand(10,2) # m/s
+position = 100*np.random.rand(NUM_PARTICLES,2) # m
+velocity = 200*np.random.rand(NUM_PARTICLES,2) # m/s
 
 position_min = np.array([0,0]) #[x_min,y_min]
 position_max = np.array([100,100]) #[x_max,y_max]
 
-particles = [0,1,2,3,4,5,6,7,8,9]
+particles = [i for i in range(NUM_PARTICLES)]
 
 
 def do_hard_wall_reflection(position_min, position_max, position, velocity):
@@ -87,10 +88,10 @@ ax.set_xlim(position_min[0], position_max[0])
 ax.set_ylim(position_min[1], position_max[1])
 circles = [patches.Circle((0,0), radius=radius, color='green') for p in particles]
 [ax.add_patch(circle) for circle in circles]
-labels = [0,1,2,3,4,5,6,7,8,9]
+# labels = [i for i in particles]
 
-for p in particles:
-    labels[p] = ax.text(position[p,0], position[p,1], p, size=12)
+# for p in particles:
+#     labels[p] = ax.text(position[p,0], position[p,1], p, size=12)
 
 def animation_frame(i):
     global position, velocity, labels
@@ -100,8 +101,8 @@ def animation_frame(i):
 
     for p,circle in zip(particles,circles):
         circle.center = position[p,0], position[p,1]
-        labels[p].remove()
-        labels[p] = ax.text(position[p,0], position[p,1], p, size=12)
+        # labels[p].remove()
+        # labels[p] = ax.text(position[p,0], position[p,1], p, size=12)
 
 animation = FuncAnimation(fig, func=animation_frame, frames=np.arange(0,10,0.1), interval=delta_t*1e3)
 
