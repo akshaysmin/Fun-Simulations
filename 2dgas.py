@@ -10,16 +10,15 @@ Boundaries at x => 0 - 100
               y => 0 - 100
 '''
 radius = 5 # meters
-delta_t = 20e-3 #seconds
-num_particles = 2
+delta_t = 10e-3 #seconds
 
 position = 100*np.random.rand(10,2) # m
-velocity = 50*np.random.rand(10,2) # m/s
+velocity = 200*np.random.rand(10,2) # m/s
 
 position_min = np.array([0,0]) #[x_min,y_min]
 position_max = np.array([100,100]) #[x_max,y_max]
 
-particles = np.arange(num_particles)
+particles = [0,1,2,3,4,5,6,7,8,9]
 
 
 def do_hard_wall_reflection(position_min, position_max, position, velocity):
@@ -53,38 +52,8 @@ def recursive_collision_finder(particle1, other_particles, num_other_particles):
 
     return colliding_pairs
 
-def do_elastic_collision(r1, r2, v1, v2):
-
-    #F.O.R. origin and velocity
-    r0, v0 = r1, v1
-
-    #before collision
-    v20 = v2 - v0
-    r20 = r2 - r0
-
-    v20_axial = np.dot(v20,r20)*r20/np.dot(r20,r20)
-    v20_nonaxial = v20 - v20_axial
-
-    v10 = 0
-
-    #after collision
-    v20 = v20_nonaxial
-    v10 = v20_axial
-
-    v1 = v0 + v10
-    v2 = v0 + v20
-
-    #calculating final position
-    dt1 = (np.linalg.norm(r20)-2*radius)/np.linalg.norm(v20_axial) #before collision
-    dt2 = delta_t - dt1  #after collision
-
-    r20 = v20_axial*dt1 + v20_nonaxial*dt2
-    r10 = 0*dt1 + v20_axial*dt2
-
-    r1 = r0 + r10
-    r2 = r0 + r20
-
-    return r1, r2, v1, v2
+def do_elastic_collision(p1,p2):
+    return 
 
 def do_timestep(i):
     global position, velocity
@@ -102,11 +71,18 @@ def do_timestep(i):
     # #modify this
     for p1,p2 in colliding_pairs:
         # collision physics goes here
-        # print(position)
-        # print(p1,p2)
+        # good code
         # velocity[p1,0], velocity[p2,0] = velocity[p2,0], velocity[p1,0]
         # velocity[p1,1], velocity[p2,1] = velocity[p2,1], velocity[p1,1]
-        position[p1], position[p2], velocity[p1], velocity[p2] = do_elastic_collision(position[p1]-velocity[p1]*delta_t, position[p2]-velocity[p2]*delta_t, velocity[p1], velocity[p2])
+        # new code
+        v20 = velocity[p2] - velocity[p1]
+        r20 = position[p2] - position[p1]
+        v2a = (np.dot(v20,r20)/np.dot(r20,r20))*r20
+
+        velocity[p2] = velocity[p1] + v20-v2a
+        velocity[p1] = velocity[p1] + v2a
+
+        
 
     return  None
 
@@ -114,14 +90,15 @@ def do_timestep(i):
 fig, ax = plt.subplots()
 ax.set_xlim(position_min[0], position_max[0])
 ax.set_ylim(position_min[1], position_max[1])
-circles = [patches.Circle((0,0), radius=radius, color='blue') for p in particles]
+circles = [patches.Circle((0,0), radius=radius, color='green') for p in particles]
 [ax.add_patch(circle) for circle in circles]
-labels = [0]*num_particles
+labels = [0,1,2,3,4,5,6,7,8,9]
+
 for p in particles:
     labels[p] = ax.text(position[p,0], position[p,1], p, size=12)
 
 def animation_frame(i):
-    global labels
+    global position, velocity, labels
     do_timestep(i)
 
     # print(position)
