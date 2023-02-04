@@ -71,17 +71,12 @@ def do_timestep(i):
     # #modify this
     for p1,p2 in colliding_pairs:
         # collision physics goes here
-        # good code
-        # velocity[p1,0], velocity[p2,0] = velocity[p2,0], velocity[p1,0]
-        # velocity[p1,1], velocity[p2,1] = velocity[p2,1], velocity[p1,1]
-        # new code
         v20 = velocity[p2] - velocity[p1]
         r20 = position[p2] - position[p1]
         v2a = (np.dot(v20,r20)/np.dot(r20,r20))*r20
 
-        velocity[p2] = velocity[p1] + v20-v2a
-        velocity[p1] = velocity[p1] + v2a
-
+        velocity[p2] += -v2a
+        velocity[p1] +=  v2a
         
 
     return  None
