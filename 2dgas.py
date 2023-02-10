@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib import patches
+import seaborn as sns
+
 
 
 #main process
@@ -9,18 +11,24 @@ from matplotlib import patches
 Boundaries at x => 0 - 100
               y => 0 - 100
 '''
-radius = 2 # meters
-delta_t = 10e-3 #seconds
-NUM_PARTICLES = 100
+SHOW_DIST = True
+SHOW_ANIM = True
+
+radius = 1 # meters
+delta_t = 20e-3 #seconds
+NUM_PARTICLES = 200
+HIST_BINS = 50
 
 position = 100*np.random.rand(NUM_PARTICLES,2) # m
-velocity = 200*np.random.rand(NUM_PARTICLES,2) # m/s
+# velocity = 200*(np.random.rand(NUM_PARTICLES,2)-0.5) # m/s
+velocity = 20*np.ones((NUM_PARTICLES,2)) # m/s
+
+# v*delta_t = 0.4
 
 position_min = np.array([0,0]) #[x_min,y_min]
 position_max = np.array([100,100]) #[x_max,y_max]
 
 particles = [i for i in range(NUM_PARTICLES)]
-
 
 def do_hard_wall_reflection(position_min, position_max, position, velocity):
     velocity = np.where((position>=position_max) | (position<=position_min), -velocity, velocity)
@@ -30,7 +38,6 @@ def do_hard_wall_reflection(position_min, position_max, position, velocity):
     position = np.where(position<=position_min, 2*position_min - position, position)
 
     return position, velocity
-
 
 def recursive_collision_finder(particle1, other_particles, num_other_particles):
     # particle1,other_particles are sorted in the order of their x-coordinate
@@ -52,9 +59,6 @@ def recursive_collision_finder(particle1, other_particles, num_other_particles):
         colliding_pairs += recursive_collision_finder(other_particles[0], other_particles[1:], num_other_particles-1)
 
     return colliding_pairs
-
-def do_elastic_collision(p1,p2):
-    return 
 
 def do_timestep(i):
     global position, velocity
@@ -78,12 +82,13 @@ def do_timestep(i):
 
         velocity[p2] += -v2a
         velocity[p1] +=  v2a
-        
 
     return  None
 
 #animation
-fig, ax = plt.subplots()
+fig = plt.figure(figsize=(8,4))
+ax = fig.add_subplot(1,2,1)
+ax2 = fig.add_subplot(1,2,2)
 ax.set_xlim(position_min[0], position_max[0])
 ax.set_ylim(position_min[1], position_max[1])
 circles = [patches.Circle((0,0), radius=radius, color='green') for p in particles]
@@ -93,16 +98,27 @@ circles = [patches.Circle((0,0), radius=radius, color='green') for p in particle
 # for p in particles:
 #     labels[p] = ax.text(position[p,0], position[p,1], p, size=12)
 
+speed = np.linalg.norm(velocity, axis=1)
+sns.kdeplot(speed, ax=ax2)
+ax2.set_xlabel('speed (m/s)')
+ax2.set_ylabel('probability')
+
 def animation_frame(i):
     global position, velocity, labels
     do_timestep(i)
 
-    # print(position)
+    if SHOW_DIST:
+        speed = np.linalg.norm(velocity, axis=1)
+        ax2.clear()
+        sns.kdeplot(speed, ax=ax2)
+        ax2.set_xlabel('speed (m/s)')
+        ax2.set_ylabel('probability')
 
-    for p,circle in zip(particles,circles):
-        circle.center = position[p,0], position[p,1]
-        # labels[p].remove()
-        # labels[p] = ax.text(position[p,0], position[p,1], p, size=12)
+    if SHOW_ANIM:
+        for p,circle in zip(particles,circles):
+            circle.center = position[p,0], position[p,1]
+            # labels[p].remove()
+            # labels[p] = ax.text(position[p,0], position[p,1], p, size=12)
 
 animation = FuncAnimation(fig, func=animation_frame, frames=np.arange(0,10,0.1), interval=delta_t*1e3)
 
